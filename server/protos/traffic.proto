@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package traffic;
+
+service Traffic{
+    rpc TrafficInputs(TrafficRequest) returns (TrafficResponse) {};
+}
+
+// Traffic from the client (student) will just sent a number (1,2,3) and their student name
+message TrafficRequest {
+    int32 understandingLevel = 1;
+    string studentName = 2;
+    }
+
+// The response will just be a boolean
+message TrafficResponse {
+    string message = 1;
+}
