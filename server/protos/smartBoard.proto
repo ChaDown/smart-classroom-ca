@@ -6,7 +6,7 @@ syntax = "proto3";
 package smartBoardPackage;
 
 service SmartBoard{
-    rpc SnapshotsInput(SmartBoardRequest) returns (SmartBoardResponse) {};
+    rpc SnapshotsInput(stream SmartBoardRequest) returns (SmartBoardResponse) {};
 }
 
 // Snapshots will have the content, and a timestamp for when it was submitteds

@@ -1,4 +1,4 @@
 server/node_modules/
-client/trafficLights/node_modules
-client/smartBoard/node_modules
-client/homeworkChat/node_modules
+clients/trafficLights/node_modules/
+clients/smartBoard/node_modules/
+clients/tutorChat/node_modules/

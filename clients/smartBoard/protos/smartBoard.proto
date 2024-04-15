@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+// The smartBoard (client) will open a stream and be able to constantly send snapshots of the current board to the server.
+// For simplicity the snapshot will just be a string 
+
+package smartBoardPackage;
+
+// Found error finally! Forgot to add stream, need this as it is a client RPC stream
+service SmartBoard {
+    rpc SnapshotsInput(stream SmartBoardRequest) returns (SmartBoardResponse) {};
+}
+
+// Snapshots will have the content, and a timestamp for when it was submitteds
+message SmartBoardRequest {
+    string snapshot = 1;
+    string dateTime = 2;
+    }
+
+// The response will just be a success / error message
+message SmartBoardResponse {
+    string message = 1;
+}

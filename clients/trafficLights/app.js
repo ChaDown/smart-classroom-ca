@@ -22,7 +22,6 @@ let studentName = "";
 // Similar check and loop if it's a string and not empty
 while (typeof studentName !== 'string' || studentName.trim() === '') {
     studentName = readlineSync.question("Enter your name\n");
-    console.log(studentName);
 }
 
 // Make a request object to match the TrafficRequest in protos

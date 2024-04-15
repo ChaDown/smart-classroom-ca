@@ -4,12 +4,15 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "nodemon app.js"
   },
   "author": "Charlie Downes",
   "license": "ISC",
   "dependencies": {
     "@grpc/grpc-js": "^1.10.6",
     "@grpc/proto-loader": "^0.7.12"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
   }
 }

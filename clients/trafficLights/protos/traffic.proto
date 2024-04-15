@@ -12,7 +12,7 @@ message TrafficRequest {
     string studentName = 2;
     }
 
-// The response will just be a boolean
+// The response will just be a message string
 message TrafficResponse {
     string message = 1;
 }
