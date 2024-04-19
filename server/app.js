@@ -49,12 +49,10 @@ const TrafficInputs = (call, callback) => {
 }
 
 // SmartBoard implementation on server side
-
+// Array for storing the snapshots
+let snapshots = [];
 const SnapshotsInput = (call, callback) => {
     try {
-        // Array for storing the snapshots
-        const snapshots = [];
-
         // 
         call.on('data', (message) => {
             // Add each snapshot to the array, first destructure the message 
@@ -85,12 +83,16 @@ const SnapshotsInput = (call, callback) => {
 
 // This object will be all the connected clients who join the "chat"
 const connectedClients = {};
+let chatMessages = [];
 
 // TutorChat will handle all incoming messages to the server
 const TutorChat = (call) => {
 
     // When a message is received the stream turns on
     call.on("data", (chatMessage) => {
+
+        // Add message to chatMessages for admin viewing. 
+        chatMessages.push(chatMessage);
     
         // First we check if the client is already in the chat (in connectedClients obj), if not we add them in
         if (!(chatMessage.senderName in connectedClients)) {
@@ -140,39 +142,6 @@ const TutorChat = (call) => {
     //     testQuestions = questions;
     // }
 
-const HomeTest = (call) => {
-    
-    const questions = [
-        { questionNumber: 1, questionContent: "Question 1" },
-        { questionNumber: 2, questionContent: "Question 2" },
-        // Add more questions as needed
-    ];
-
-    // Listen for the request to start the service
-    call.on('data', (request) => {
-        
-        const studentName = request.studentName;
-        if (!studentName) {
-            // If the student's name is missing, send an error response
-            call.emit('error', new Error('Student name is required'));
-            return;
-        }
-    }
-    )
-
-    // Send each question to the client every 5 seconds. In reality it would be x minutes, but for simplicity using 5s. 
-    const interval = setInterval(() => {
-        // use .shift() to return and remove the first question, which will keep hapopening until array is empty.
-        const question = questions.shift();
-        if (question) {
-            call.write(question);
-        } else {
-            clearInterval(interval);
-            call.end();
-        }
-    }, 5000);
-};
-
 // Submit Test Service Implementation
 
 let studentTestResults = [];
@@ -183,8 +152,8 @@ const SubmitTest = (call, callback) => {
     const testResult = call.request;
     if (testResult) 
     {
-        studentResponsesArr.push(testResult);
-        console.log(studentResponsesArr);
+        studentTestResults.push(testResult);
+        console.log(studentTestResults);
         callback( null, {
         message: "Test saved on server"
         });
@@ -210,7 +179,6 @@ const server = new grpc.Server();
 server.addService(traffic_proto.Traffic.service, { TrafficInputs }); // unary
 server.addService(smartBoard_proto.SmartBoard.service, { SnapshotsInput }); // client stream
 server.addService(tutorChat_proto.TutorChat.service, { TutorChat }); // bidirectional stream 
-server.addService(tutorChat_proto.HomeTest.service, { HomeTest }); // server stream
 server.addService(tutorChat_proto.SubmitTest.service, { SubmitTest }); // unary
 
 //Bind the server 
@@ -219,3 +187,107 @@ server.bindAsync("0.0.0.0:4040", grpc.ServerCredentials.createInsecure(), functi
     })
 
 
+// Finally we want to set up an API for admin access. 
+// Going to use the Express framework
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+app.use(bodyParser.json());
+
+// Enable CORS as this was being blocked by the browser in admin client calls 
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE'); // Allow specified HTTP methods
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+  });
+
+// View and clear traffic lights array
+app.get('/traffic-lights', (req, res) => {
+    res.json(studentResponsesArr); // Return the array of responses
+});
+
+app.delete('/traffic-lights', (req, res) => {
+    studentResponsesArr = []; 
+    res.send('Traffic lights responses cleared');
+});
+
+// View and clear snapshots. In reallife these would all be stored in a DB when deleted
+app.get('/snapshots', (req, res) => {
+    res.json(snapshots);
+});
+
+app.delete('/snapshots', (req, res) => {
+    snapshots = [];
+    res.send('Snapshots cleared');
+});
+
+// View and clear all tutor chat messages
+app.get('/tutor-chat-messages', (req, res) => {
+    res.json(chatMessages);
+    
+});
+
+app.delete('/tutor-chat-messages', (req, res) => {
+    chatMessages = [];
+    res.send('Chat messages cleared');
+});
+
+// Input an array of questions into the home test and make test available
+// Need to put logic in this api call as questions are needed 
+app.post('/home-test/questions', (req, res) => {
+    const questions = req.body;
+    //const questions = JSON.parse(questionsReq);
+
+    console.log(questions);
+
+    const HomeTest = (call) => {
+    
+        // Listen for the request to start the service
+        call.on('data', (request) => {
+            
+            const studentName = request.studentName;
+            if (!studentName) {
+                // If the student's name is missing, send an error response
+                call.emit('error', new Error('Student name is required'));
+                return;
+            }
+        }
+        )
+    
+        // Send each question to the client every 5 seconds. In reality it would be x minutes, but for simplicity using 5s. 
+        const interval = setInterval(() => {
+            // use .shift() to return and remove the first question, which will keep hapopening until array is empty.
+            const question = questions.shift();
+            if (question) {
+                call.write(question);
+            } else {
+                clearInterval(interval);
+                call.end();
+            }
+        }, 5000);
+    };
+
+    // Fix bug, must remove serice each time a new test is added, then add the new one.
+    server.removeService(tutorChat_proto.HomeTest.service);
+
+    // Logic to input questions into the home test
+    server.addService(tutorChat_proto.HomeTest.service, { HomeTest }); // server stream
+
+    res.send("Questions added and test now available")
+
+});
+
+app.get('/student-results', (req, res) => {
+    if (studentTestResults.length > 0) {
+        res.json(studentTestResults);
+    }
+
+    else res.json({message: "No tests received yet"})
+})
+
+
+// Start the Express server
+app.listen(3030, () => {
+    console.log('Admin API server is running on port 3030');
+});

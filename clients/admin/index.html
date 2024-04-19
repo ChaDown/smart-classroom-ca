@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Portal</title>
+    <script defer src="index.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Teacher Admin</h1>
+
+    <section>
+        <h2>Traffic Lights</h2>
+        <button id="showTrafficLightsBtn">Show Traffic Lights</button>
+        <button id="clearTrafficLightsBtn">Clear Traffic Lights</button>
+    </section>
+    <section>
+        <h2>Snapshots</h2>
+        <button id="showSnapshotsBtn">Show Snapshots</button>
+        <button id="clearSnapshotsBtn">Clear Snapshots</button>
+    </section>
+    <section>
+    <h2>Chat</h2>
+    <button id="showChatBtn">Show Chat</button>
+    <button id="clearChatBtn">Clear Chat</button>
+    </section>
+    <section>
+    <h2>Test Section</h2>
+    <div>
+        <label for="questionContent">Question Content:</label>
+        <input type="text" id="questionContent" name="questionContent">
+    </div>
+    <div>
+        <label for="questionNumber">Question Number:</label>
+        <input type="text" id="questionNumber" name="questionNumber">
+    </div>
+    <button id="addToTestBtn">Add to Test</button>
+    <button id="makeTestAvailableBtn">Submit Test and Make Test Available</button>
+    <button id="testResultsBtn">Show Test Results</button>
+    </section>
+
+    <p id="apiResults">No data yet</p>
+
+</body>
+</html>
