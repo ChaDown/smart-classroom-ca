@@ -36,10 +36,6 @@ const TrafficInputs = (call, callback) => {
         callback(null, {
             message: "Successfully submitted"
         })
-        }else{
-        callback(null,{
-            message: "Successfully submitted"
-        })
         }
         }catch(e){
         callback(null, {
@@ -64,9 +60,6 @@ const SnapshotsInput = (call, callback) => {
             
             // Message when the stream ends
             console.log('Snapshots received:', snapshots);
-
-            // // Add the snapshots to the array or perform any other processing logic
-            // smartBoardSnapshotsArray.push(...snapshots);
 
             // Send response message back as defined in the proto
             callback(null, { message: 'Snapshots received successfully' });
@@ -125,22 +118,17 @@ const TutorChat = (call) => {
     
          // If there is an error with the call
         call.on('error', function(e) {
-        // Log the error
+        // Log the error on server
             console.log(e);
+        // Explain error to remote client 
+        call.write({
+            error: {
+                message: `An error occurred on the server: ${e.message}`
+            }
+        });
          });
     })
 }
-
-
-
-    // HomeTest service implementation. This will be server streaming, where the test questioned are administered in a stream every x minutes
-
-    // First we will make an empty Qs array, which can be updated by teacher using the below function. 
-    // let testQuestions = [];
-
-    // const addNewQuestions = (questions) => {
-    //     testQuestions = questions;
-    // }
 
 // Submit Test Service Implementation
 
@@ -153,16 +141,10 @@ const SubmitTest = (call, callback) => {
     if (testResult) 
     {
         studentTestResults.push(testResult);
-        console.log(studentTestResults);
         callback( null, {
         message: "Test saved on server"
         });
         
-    }
-    else {
-        callback(null, {
-            message: "Not saved on server"
-        })
     }
 }
     catch(e){
@@ -236,11 +218,11 @@ app.delete('/tutor-chat-messages', (req, res) => {
 // Input an array of questions into the home test and make test available
 // Need to put logic in this api call as questions are needed 
 app.post('/home-test/questions', (req, res) => {
+
     const questions = req.body;
-    //const questions = JSON.parse(questionsReq);
 
-    console.log(questions);
-
+    // HomeTest service implementation. 
+    // This will be server streaming, where the test questioned are administered in a stream every x minutes
     const HomeTest = (call) => {
     
         // Listen for the request to start the service

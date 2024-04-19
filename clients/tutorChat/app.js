@@ -21,7 +21,10 @@ if (service == 1) {
 
 const client = new tutorChat_proto.TutorChat("0.0.0.0:4040", grpc.credentials.createInsecure());
 // When service is initialised, student will enter their name 
-const senderName = readlineSync.question("Please enter your name\n");
+let senderName = "";
+while (typeof senderName !== 'string' || senderName.trim() === '') {
+senderName = readlineSync.question("Write your name, and press enter to join the chat\n");
+}
 // Next need to start the call connection, by calling the tutorchat rpc service 
 const call = client.TutorChat();
 
@@ -86,49 +89,64 @@ const clientSubmitTest = new tutorChat_proto.SubmitTest("0.0.0.0:4040", grpc.cre
 let answers = [];
 
 // Get the student's name from the user
-const studentName = readlineSync.question("Write your name, and press enter to start the test. Only enter one answer for each question: ");
+// Ensure user has entered a name, and if they don't repeat the call.
+let studentName = "";
+while (typeof studentName !== 'string' || studentName.trim() === '') {
+studentName = readlineSync.question("Write your name, and press enter to start the test. Only enter one answer for each question. \nThe test will submit automatically after the final question: ");
+}
 
 // Send the TestRequest message to the server to start the test
 const request = { studentName };
 const callTest = clientHomeTest.HomeTest(request);
 
+// If the teacher hasn't created a test yet, display message and end the call
+callTest.on('error', (e) => {
+    if (e.code === grpc.status.UNIMPLEMENTED) {
+        console.error('No test available yet, please try again later or contact your teacher');
+        
+    }
+
+// If it is implemented, carry on with the call.
+    else {
 // Everytime a question ("data") is received, log it to console. 
 callTest.on("data", (question) => {
-   // console.log(`Question ${question.questionNumber}: ${question.questionContent}`);
-    const answer = readlineSync.question((`Question ${question.questionNumber}: ${question.questionContent}\n`));
-    // Add to answers array to be sent in seperate submit unary call 
-    answers.push({
-        questionNumber: question.questionNumber,
-        questionContent: answer
-    })
+    // console.log(`Question ${question.questionNumber}: ${question.questionContent}`);
+     const answer = readlineSync.question((`Question ${question.questionNumber}: ${question.questionContent}\n`));
+     // Add to answers array to be sent in seperate submit unary call 
+     answers.push({
+         questionNumber: question.questionNumber,
+         questionContent: answer
+     })
+ });
+ 
+ // Handle the end of the stream
+ callTest.on("end", () => {
+     console.log("Test completed")
+     console.log("Your answers: \n" + JSON.stringify(answers));
+     // Submit the answers using a seperate unary rpc call 
+    
+     // Make a request object
+     const request = {
+         studentName,
+         answers,
+     };
+ 
+     clientSubmitTest.SubmitTest(request, (error, response) => {
+         if (error) {
+             console.error('Error sending traffic inputs:', error);
+         } else {
+             console.log('Test submitted successfully:', response);
+         }
+     });
+
+     // Handle any susequent errors
+    callTest.on("error", (e) => {
+    console.error("Error:", e.message);
 });
+ 
+ });
+    }
 
-// Handle the end of the stream
-callTest.on("end", () => {
-    console.log("Test completed")
-    console.log("Your answers: \n" + JSON.stringify(answers));
-    // Submit the answers using a seperate unary rpc call 
-   
-    // Make a request object to match the TrafficRequest in protos
-    const request = {
-        studentName,
-        answers,
-    };
-
-    clientSubmitTest.SubmitTest(request, (error, response) => {
-        if (error) {
-            console.error('Error sending traffic inputs:', error);
-        } else {
-            console.log('Test submitted successfully:', response);
-        }
-    });
-
-});
-
-
-// Handle any errors
-callTest.on("error", (error) => {
-    console.error("Error:", error);
 });
 
 }

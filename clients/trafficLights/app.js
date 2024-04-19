@@ -31,9 +31,9 @@ const request = {
 };
 
 
-client.TrafficInputs(request, (error, response) => {
-    if (error) {
-        console.error('Error sending traffic inputs:', error);
+client.TrafficInputs(request, (e, response) => {
+    if (e) {
+        console.error('Error sending traffic inputs:', e.message);
     } else {
         console.log('Traffic inputs sent successfully:', response);
     }
