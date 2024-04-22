@@ -23,13 +23,19 @@ async function fetchTrafficLights() {
             apiResponseSection.innerText = "No responses yet"
         }
         else {
-        console.log(data);
-        let studentResponses = "Traffic Light Responses\n"
+
+        let studentResponses = "Traffic Light Responses <br>" 
         data.forEach((res) => {
-            studentResponses += `${res.studentName}: ${res.understandingLevel}\n`
+            // Get colour of traffic light to apply conditional class
+            let trafficLightColour;
+            if (res.understandingLevel === 1) trafficLightColour = "green";
+            if (res.understandingLevel === 2) trafficLightColour = "yellow";
+            if (res.understandingLevel === 3) trafficLightColour = "red";
+
+            studentResponses += `${res.studentName}:   ` + `<span class="circle ${trafficLightColour}"></span><br>`;
 
         })
-        apiResponseSection.innerText = studentResponses;
+        apiResponseSection.innerHTML = studentResponses;
         }
 
     } catch (error) {
@@ -49,7 +55,6 @@ async function clearTrafficLights() {
         }
         const data = await response.text();
         // Update UI to show results
-        console.log(data);
         apiResponseSection.innerText = data;
 
     } catch (error) {
@@ -73,7 +78,7 @@ async function fetchSnapshots() {
             apiResponseSection.innerText = "No snapshots yet"
         }
         else {
-        console.log(data);
+        
         let snapshots = "Snapshots:\n"
         data.forEach((res) => {
             snapshots += `${res.dateTime}: ${res.snapshot}\n`
@@ -99,7 +104,6 @@ async function clearSnapshots() {
         }
         const data = await response.text();
         // Update UI to show results
-        console.log(data);
         apiResponseSection.innerText = data;
 
     } catch (error) {
@@ -123,7 +127,6 @@ async function fetchChat() {
             apiResponseSection.innerText = "No chat messages yet"
         }
         else {
-        console.log(data);
         let chatMessages = "Chat Messages:\n"
         data.forEach((res) => {
             chatMessages += `${res.senderName}: ${res.message}\n`
@@ -149,7 +152,6 @@ async function clearChat() {
         }
         const data = await response.text();
         // Update UI to show results
-        console.log(data);
         apiResponseSection.innerText = data;
 
     } catch (error) {
@@ -175,7 +177,6 @@ async function addQuestions(questionsArr) {
         }
         const data = await response.text();
         // Update UI to show results
-        console.log(data);
         apiResponseSection.innerText = data;
 
     } catch (error) {
@@ -207,8 +208,46 @@ async function fetchResults() {
         
         const data = await response.json();
          // Update UI to show results
-        
+         // Make more readible to the teacher
+ 
+         let resultsMsg = "";
+
+         if (data.length > 0) {
+
+         data.forEach((testResult) => {
+            resultsMsg += `${testResult.studentName}:\n`;
+            // then do another loop through each answer
+            if (testResult.answers) {
+            testResult.answers.forEach((answer) => {
+                resultsMsg += `${answer.questionNumber}: ${answer.questionContent}\n`
+            })};
+         })
+
+         apiResponseSection.innerText = resultsMsg;
+        }
+
+        else apiResponseSection.innerText = "No results yet";
+
+    } catch (error) {
+        console.error('Fetch error:', error);
+    }
+}
+
+async function deleteTest() {
+    try {
+        const response = await fetch(`${HOST}/delete-test`, {
+            method: "DELETE",
+        });
+        // Check is response is okay (200)
+        if (!response.ok) {
+            console.log(response)
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+         // Update UI to show results
         apiResponseSection.innerText = JSON.stringify(data);
+        // Empty the current front end questions arr
+        questionsArr = [];
 
     } catch (error) {
         console.error('Fetch error:', error);
@@ -233,10 +272,8 @@ document.getElementById("addToTestBtn").addEventListener("click", () => {
 });
 
 document.getElementById("makeTestAvailableBtn").addEventListener("click", () => {
-    // const questionContentValue = document.getElementById("questionContent").value;
-    // const questionNumberValue = document.getElementById("questionNumber").value;
-    // addToQuestionsArr(questionNumberValue, questionContentValue);
     addQuestions(questionsArr);
 });
 
 document.getElementById('testResultsBtn').addEventListener("click", fetchResults);
+document.getElementById('deleteTestBtn').addEventListener("click", deleteTest);

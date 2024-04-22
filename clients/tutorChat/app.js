@@ -99,19 +99,22 @@ studentName = readlineSync.question("Write your name, and press enter to start t
 const request = { studentName };
 const callTest = clientHomeTest.HomeTest(request);
 
-// If the teacher hasn't created a test yet, display message and end the call
-callTest.on('error', (e) => {
-    if (e.code === grpc.status.UNIMPLEMENTED) {
-        console.error('No test available yet, please try again later or contact your teacher');
-        
-    }
+            
+ // If the teacher hasn't created a test yet, display a message and end the call
+  callTest.on('error', (e) => {
+        if (e.code === grpc.status.UNIMPLEMENTED) {
+            console.error('No test available yet, please try again later or contact your teacher');
+        } else {
+            console.error("Error:", e.message);
+        }
+    });
 
 // If it is implemented, carry on with the call.
-    else {
+   
 // Everytime a question ("data") is received, log it to console. 
 callTest.on("data", (question) => {
-    // console.log(`Question ${question.questionNumber}: ${question.questionContent}`);
-     const answer = readlineSync.question((`Question ${question.questionNumber}: ${question.questionContent}\n`));
+
+    const answer = readlineSync.question((`Question ${question.questionNumber}: ${question.questionContent}\n`));
      // Add to answers array to be sent in seperate submit unary call 
      answers.push({
          questionNumber: question.questionNumber,
@@ -145,8 +148,6 @@ callTest.on("data", (question) => {
 });
  
  });
-    }
+    
 
-});
-
-}
+};

@@ -1,47 +1,35 @@
 syntax = "proto3";
-
 package tutorChatPackage;
-
 // Tutor chat will enable students to chat with a tutor from home from their tutorChat app, 
 // Bidirectional RPC streaming will be used. 
-
 service TutorChat {
     rpc TutorChat(stream ChatMessage) returns (stream ChatMessage) {}
 }
-
 message ChatMessage {
     string senderName = 1;
     string message = 2;
 }
-
 // The app will also allow homeTests to be administered
 // Student starts test, then a stream of Qs are sent over x amount of time. 
-
 service HomeTest {
     rpc HomeTest(TestRequest) returns (stream TestQuestions) {};
 }
-
 message TestRequest {
     string studentName = 1;
 }
-
 message TestQuestions {
     int32 questionNumber = 1;
     string questionContent = 2;
 }
-
 // Final service will be to submit the test, which will be a unary service
-
 service SubmitTest {
     rpc SubmitTest(TestBody) returns (TestConfirmation) {}
 }
-
 message TestBody {
     string studentName = 1;
     // Repeated will show that multiple answers are expected
     repeated TestQuestions answers = 2;
 }
-
 message TestConfirmation {
     string message = 1;
 }

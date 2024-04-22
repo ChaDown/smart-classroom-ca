@@ -32,12 +32,12 @@ const TrafficInputs = (call, callback) => {
         if(understandingLevel && studentName){
         // Add to responses array
         studentResponsesArr.push({understandingLevel, studentName});
-        console.log(studentResponsesArr);
         callback(null, {
             message: "Successfully submitted"
         })
         }
         }catch(e){
+        console.log(e.message);
         callback(null, {
         message: `An error occured: ${e.message}`
         })
@@ -220,6 +220,7 @@ app.delete('/tutor-chat-messages', (req, res) => {
 app.post('/home-test/questions', (req, res) => {
 
     const questions = req.body;
+    console.log(questions);
 
     // HomeTest service implementation. 
     // This will be server streaming, where the test questioned are administered in a stream every x minutes
@@ -237,6 +238,9 @@ app.post('/home-test/questions', (req, res) => {
         }
         )
     
+        // Send the first question instantly, then stream a q every 5s. 
+        const question1 = questions.shift();
+        call.write(question1);
         // Send each question to the client every 5 seconds. In reality it would be x minutes, but for simplicity using 5s. 
         const interval = setInterval(() => {
             // use .shift() to return and remove the first question, which will keep hapopening until array is empty.
@@ -268,6 +272,18 @@ app.get('/student-results', (req, res) => {
     else res.json({message: "No tests received yet"})
 })
 
+// Make endpoint for deleting tests 
+app.delete('/delete-test', (req, res) => {
+console.log(req);
+    const service = tutorChat_proto.HomeTest.service;
+    if (server.hasOwnProperty('_handlers') && server._handlers.hasOwnProperty(service)) {
+        server.removeService(service);
+        res.json({message: 'Tests deleted successfully.'});
+        studentTestResults = [];
+    } else {
+        res.json({message: 'No current tests are live.'});
+    }
+});
 
 // Start the Express server
 app.listen(3030, () => {

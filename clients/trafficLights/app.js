@@ -14,7 +14,9 @@ const client = new traffic_proto.Traffic("0.0.0.0:4040", grpc.credentials.create
 let understandingLevel = 0;
 // Use a while loop to guarantee correct input, make it an int using parseInt
 while (!(understandingLevel === 1 || understandingLevel === 2 || understandingLevel === 3)) {
-    understandingLevel = parseInt(readlineSync.question("What's your understanding level?\n1 = Very Good\n2 = Okay, but would like to review\n3 = Need some help\n"));
+    const inputNumber = (readlineSync.question("What's your understanding level?\n1 = Very Good\n2 = Okay, but would like to review\n3 = Need some help\n"));
+   // If it is a number and not a string, then parse it and if it's valid it will break the loop
+    if (!isNaN(inputNumber)) understandingLevel = parseInt(inputNumber);
 }
 
 // Get students name 
